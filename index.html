@@ -3,112 +3,163 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TÜRKİYE CUMHURİYETİ BKNET SINAV HİZMETLERİ</title>
+<title>Türkiye Cumhuriyeti Burak KOÇ sınav hizmetleri</title>
 
 <style>
-body {
-    margin: 0;
-    background: black;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+body{
+    margin:0;
+    background:black;
+    overflow:hidden;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
 }
 
-/* Büyük 7-segment tarz */
-#clock {
-    font-family: monospace;
-    font-weight: bold;
-    font-size: 28vw;   /* ÇOK BÜYÜK */
-    color: red;
-    text-shadow:
-        0 0 20px red,
-        0 0 40px red,
-        0 0 60px red;
-    letter-spacing: 3vw;
+/* Saat alanı */
+.clock{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:100vw;
+    height:100vh;
 }
 
-video {
-    display: none;
+/* REC göstergesi */
+#recIndicator{
+    position:absolute;
+    top:20px;
+    right:20px;
+    width:20px;
+    height:20px;
+    background:red;
+    border-radius:50%;
+    box-shadow:0 0 20px red;
+    display:none;
+    animation:blink 1s infinite;
 }
 
-#stopBtn {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    background: black;
-    color: red;
-    border: 2px solid red;
-    padding: 14px 24px;
-    font-size: 18px;
+@keyframes blink{
+    0%{opacity:1;}
+    50%{opacity:0.2;}
+    100%{opacity:1;}
+}
+
+/* Her rakam */
+.digit{
+    position:relative;
+    width:18vw;
+    height:32vw;
+    margin:1vw;
+}
+
+/* Segment */
+.segment{
+    position:absolute;
+    background:red;
+    box-shadow:0 0 25px red;
+    opacity:0.1;
+}
+
+.a{ top:0; left:10%; width:80%; height:8%; }
+.b{ top:5%; right:0; width:8%; height:40%; }
+.c{ bottom:5%; right:0; width:8%; height:40%; }
+.d{ bottom:0; left:10%; width:80%; height:8%; }
+.e{ bottom:5%; left:0; width:8%; height:40%; }
+.f{ top:5%; left:0; width:8%; height:40%; }
+.g{ top:46%; left:10%; width:80%; height:8%; }
+
+/* Colon */
+.colon{
+    width:5vw;
+    height:32vw;
+    position:relative;
+}
+
+.dot{
+    width:4vw;
+    height:4vw;
+    background:red;
+    border-radius:50%;
+    position:absolute;
+    left:0;
+    right:0;
+    margin:auto;
+    box-shadow:0 0 20px red;
+}
+
+.dot.top{ top:30%; }
+.dot.bottom{ bottom:30%; }
+
+video{ display:none; }
+
+#stopBtn{
+    position:absolute;
+    bottom:20px;
+    right:20px;
+    background:black;
+    color:red;
+    border:2px solid red;
+    padding:10px 20px;
+    font-size:16px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="clock">88:88</div>
+<div class="clock" id="clock"></div>
+<div id="recIndicator"></div>
 <video id="video" autoplay playsinline></video>
 <button id="stopBtn">Ses Aç / Kapat</button>
 
 <script>
-const clock = document.getElementById("clock");
-const video = document.getElementById("video");
-const stopBtn = document.getElementById("stopBtn");
-
-function updateClock() {
-    const now = new Date();
-    const h = String(now.getHours()).padStart(2,'0');
-    const m = String(now.getMinutes()).padStart(2,'0');
-    clock.textContent = h + ":" + m;
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-let mediaRecorder;
-let chunks = [];
-
-async function init() {
-
-    // Tam ekran
-    if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(()=>{});
-    }
-
-    const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: true
-    });
-
-    video.srcObject = stream;
-
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = e => chunks.push(e.data);
-    mediaRecorder.start(); // İzin verince otomatik başlar
-}
-
-init();
-
-stopBtn.onclick = function() {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-        mediaRecorder.stop();
-
-        mediaRecorder.onstop = () => {
-            const blob = new Blob(chunks, { type: "video/webm" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-
-            const now = new Date();
-            const fileName = now.toISOString().replace(/[:.]/g,"-");
-
-            a.href = url;
-            a.download = fileName + ".webm";
-            a.click();
-        };
-    }
+const numbers = {
+0:['a','b','c','d','e','f'],
+1:['b','c'],
+2:['a','b','g','e','d'],
+3:['a','b','g','c','d'],
+4:['f','g','b','c'],
+5:['a','f','g','c','d'],
+6:['a','f','g','e','c','d'],
+7:['a','b','c'],
+8:['a','b','c','d','e','f','g'],
+9:['a','b','c','d','f','g']
 };
-</script>
 
-</body>
-</html>
+function createDigit(){
+    const d=document.createElement("div");
+    d.className="digit";
+    ['a','b','c','d','e','f','g'].forEach(s=>{
+        const seg=document.createElement("div");
+        seg.className="segment "+s;
+        d.appendChild(seg);
+    });
+    return d;
+}
+
+function createColon(){
+    const c=document.createElement("div");
+    c.className="colon";
+    const t=document.createElement("div");
+    t.className="dot top";
+    const b=document.createElement("div");
+    b.className="dot bottom";
+    c.appendChild(t);
+    c.appendChild(b);
+    return c;
+}
+
+const clock=document.getElementById("clock");
+
+const d1=createDigit();
+const d2=createDigit();
+const colon=createColon();
+const d3=createDigit();
+const d4=createDigit();
+
+clock.append(d1,d2,colon,d3,d4);
+
+function setDigit(digit,num){
+    const segs=digit.querySelectorAll(".segment");
+    segs.forEach(s=>s.style.opacity=0.1
