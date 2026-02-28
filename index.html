@@ -3,109 +3,111 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Digital Clock Camera System</title>
+<title>TÜRKİYE CUMHURİYETİ BKNET SINAV HİZMETLERİ</title>
 
 <style>
 body {
     margin: 0;
     background: black;
-    color: red;
-    font-family: monospace;
-    text-align: center;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
+/* Büyük 7-segment tarz */
 #clock {
-    font-size: 60px;
-    margin-top: 60px;
-    text-shadow: 0 0 20px red;
-    letter-spacing: 3px;
-}
-
-#recIndicator {
-    margin-top: 20px;
-    font-size: 20px;
-    display: none;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 28vw;   /* ÇOK BÜYÜK */
     color: red;
+    text-shadow:
+        0 0 20px red,
+        0 0 40px red,
+        0 0 60px red;
+    letter-spacing: 3vw;
 }
 
 video {
     display: none;
 }
 
-button {
-    margin: 15px;
-    padding: 12px 20px;
-    font-size: 16px;
+#stopBtn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
     background: black;
     color: red;
-    border: 1px solid red;
+    border: 2px solid red;
+    padding: 14px 24px;
+    font-size: 18px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="clock"></div>
-<div id="recIndicator">● REC</div>
-
+<div id="clock">88:88</div>
 <video id="video" autoplay playsinline></video>
-
-<br>
-<button onclick="startRecording()">Kayıt Başlat</button>
-<button onclick="stopRecording()">Kayıt Durdur</button>
+<button id="stopBtn">Ses Aç / Kapat</button>
 
 <script>
 const clock = document.getElementById("clock");
 const video = document.getElementById("video");
-const recIndicator = document.getElementById("recIndicator");
+const stopBtn = document.getElementById("stopBtn");
 
 function updateClock() {
     const now = new Date();
-    const time = now.toLocaleTimeString("tr-TR", { hour12: false });
-    const ms = String(now.getMilliseconds()).padStart(3, '0');
-    clock.textContent = time + "." + ms;
-    requestAnimationFrame(updateClock);
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    clock.textContent = h + ":" + m;
 }
+setInterval(updateClock, 1000);
 updateClock();
-
-async function initCamera() {
-    const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: true
-    });
-    video.srcObject = stream;
-    window.stream = stream;
-}
-initCamera();
 
 let mediaRecorder;
 let chunks = [];
 
-function startRecording() {
-    chunks = [];
-    mediaRecorder = new MediaRecorder(window.stream);
+async function init() {
+
+    // Tam ekran
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(()=>{});
+    }
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: true
+    });
+
+    video.srcObject = stream;
+
+    mediaRecorder = new MediaRecorder(stream);
     mediaRecorder.ondataavailable = e => chunks.push(e.data);
-    mediaRecorder.start();
-    recIndicator.style.display = "block";
+    mediaRecorder.start(); // İzin verince otomatik başlar
 }
 
-function stopRecording() {
-    mediaRecorder.stop();
-    recIndicator.style.display = "none";
+init();
 
-    mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "video/webm" });
-        const url = URL.createObjectURL(blob);
+stopBtn.onclick = function() {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
 
-        const now = new Date();
-        const fileName = now.toISOString().replace(/[:.]/g, "-");
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(chunks, { type: "video/webm" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
 
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName + ".webm";
-        a.click();
-    };
-}
+            const now = new Date();
+            const fileName = now.toISOString().replace(/[:.]/g,"-");
+
+            a.href = url;
+            a.download = fileName + ".webm";
+            a.click();
+        };
+    }
+};
 </script>
 
 </body>
