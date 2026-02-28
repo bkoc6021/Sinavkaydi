@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Clock Camera System</title>
+
+<style>
+body {
+    margin: 0;
+    background: black;
+    color: red;
+    font-family: monospace;
+    text-align: center;
+}
+
+#clock {
+    font-size: 60px;
+    margin-top: 60px;
+    text-shadow: 0 0 20px red;
+    letter-spacing: 3px;
+}
+
+#recIndicator {
+    margin-top: 20px;
+    font-size: 20px;
+    display: none;
+    color: red;
+}
+
+video {
+    display: none;
+}
+
+button {
+    margin: 15px;
+    padding: 12px 20px;
+    font-size: 16px;
+    background: black;
+    color: red;
+    border: 1px solid red;
+}
+</style>
+</head>
+
+<body>
+
+<div id="clock"></div>
+<div id="recIndicator">● REC</div>
+
+<video id="video" autoplay playsinline></video>
+
+<br>
+<button onclick="startRecording()">Kayıt Başlat</button>
+<button onclick="stopRecording()">Kayıt Durdur</button>
+
+<script>
+const clock = document.getElementById("clock");
+const video = document.getElementById("video");
+const recIndicator = document.getElementById("recIndicator");
+
+function updateClock() {
+    const now = new Date();
+    const time = now.toLocaleTimeString("tr-TR", { hour12: false });
+    const ms = String(now.getMilliseconds()).padStart(3, '0');
+    clock.textContent = time + "." + ms;
+    requestAnimationFrame(updateClock);
+}
+updateClock();
+
+async function initCamera() {
+    const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: true
+    });
+    video.srcObject = stream;
+    window.stream = stream;
+}
+initCamera();
+
+let mediaRecorder;
+let chunks = [];
+
+function startRecording() {
+    chunks = [];
+    mediaRecorder = new MediaRecorder(window.stream);
+    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+    mediaRecorder.start();
+    recIndicator.style.display = "block";
+}
+
+function stopRecording() {
+    mediaRecorder.stop();
+    recIndicator.style.display = "none";
+
+    mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "video/webm" });
+        const url = URL.createObjectURL(blob);
+
+        const now = new Date();
+        const fileName = now.toISOString().replace(/[:.]/g, "-");
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName + ".webm";
+        a.click();
+    };
+}
+</script>
+
+</body>
+</html>
