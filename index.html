@@ -3,76 +3,114 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Türkiye Cumhuriyeti Burak KOÇ Sınav hizmetleri sınav kayıtı</title>
+<title>Türkiye Cumhuriyeti Burak Koç sınav hizmetleri kayıtlı sınav saati</title>
 
 <style>
 body{
     margin:0;
     background:black;
-    overflow:hidden;
     display:flex;
     justify-content:center;
     align-items:center;
     height:100vh;
+    overflow:hidden;
+    touch-action:manipulation;
+}
+
+video{
+    position:fixed;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:0;
+}
+
+.clock-box{
+    position:relative;
+    background:black;
+    padding:20px 30px;
+    z-index:2;
 }
 
 .clock{
     display:flex;
     align-items:center;
-    justify-content:center;
 }
 
 .digit{
     position:relative;
-    width:18vw;
-    height:32vw;
-    margin:1vw;
+    width:60px;
+    height:110px;
+    margin:5px;
 }
 
 .segment{
     position:absolute;
     background:red;
-    box-shadow:0 0 25px red;
     opacity:0.1;
 }
 
-.a{ top:0; left:10%; width:80%; height:8%; }
-.b{ top:5%; right:0; width:8%; height:40%; }
-.c{ bottom:5%; right:0; width:8%; height:40%; }
-.d{ bottom:0; left:10%; width:80%; height:8%; }
-.e{ bottom:5%; left:0; width:8%; height:40%; }
-.f{ top:5%; left:0; width:8%; height:40%; }
-.g{ top:46%; left:10%; width:80%; height:8%; }
+.on{ opacity:1; }
+
+.a{ top:0; left:10%; width:80%; height:10%; }
+.b{ top:5%; right:0; width:10%; height:40%; }
+.c{ bottom:5%; right:0; width:10%; height:40%; }
+.d{ bottom:0; left:10%; width:80%; height:10%; }
+.e{ bottom:5%; left:0; width:10%; height:40%; }
+.f{ top:5%; left:0; width:10%; height:40%; }
+.g{ top:45%; left:10%; width:80%; height:10%; }
 
 .colon{
-    width:5vw;
-    height:32vw;
+    width:20px;
+    height:110px;
     position:relative;
 }
 
 .dot{
-    width:4vw;
-    height:4vw;
+    width:15px;
+    height:15px;
     background:red;
     border-radius:50%;
     position:absolute;
     left:0;
     right:0;
     margin:auto;
-    box-shadow:0 0 20px red;
 }
 
-.dot.top{ top:30%; }
-.dot.bottom{ bottom:30%; }
+.dot.top{ top:25%; }
+.dot.bottom{ bottom:25%; }
+
+.rec-dot{
+    position:fixed;
+    top:20px;
+    right:20px;
+    width:15px;
+    height:15px;
+    background:red;
+    border-radius:50%;
+    display:none;
+    z-index:3;
+}
 </style>
 </head>
-
 <body>
 
-<div class="clock" id="clock"></div>
+<video id="video" autoplay playsinline muted></video>
+<div class="rec-dot" id="recDot"></div>
+
+<div class="clock-box">
+    <div class="clock" id="clock"></div>
+</div>
 
 <script>
-const numbers = {
+let mediaRecorder;
+let recordedChunks=[];
+let stream;
+let wakeLock=null;
+let recording=false;
+let lastTap=0;
+
+const numbers={
 0:['a','b','c','d','e','f'],
 1:['b','c'],
 2:['a','b','g','e','d'],
@@ -109,20 +147,17 @@ function createColon(){
 }
 
 const clock=document.getElementById("clock");
-
 const d1=createDigit();
 const d2=createDigit();
 const colon=createColon();
 const d3=createDigit();
 const d4=createDigit();
-
 clock.append(d1,d2,colon,d3,d4);
 
 function setDigit(digit,num){
-    const segs=digit.querySelectorAll(".segment");
-    segs.forEach(s=>s.style.opacity=0.1);
+    digit.querySelectorAll(".segment").forEach(s=>s.classList.remove("on"));
     numbers[num].forEach(n=>{
-        digit.querySelector("."+n).style.opacity=1;
+        digit.querySelector("."+n).classList.add("on");
     });
 }
 
@@ -130,15 +165,68 @@ function updateClock(){
     const now=new Date();
     let h=now.getHours().toString().padStart(2,'0');
     let m=now.getMinutes().toString().padStart(2,'0');
-
-    setDigit(d1, h[0]);
-    setDigit(d2, h[1]);
-    setDigit(d3, m[0]);
-    setDigit(d4, m[1]);
+    setDigit(d1,h[0]);
+    setDigit(d2,h[1]);
+    setDigit(d3,m[0]);
+    setDigit(d4,m[1]);
+    colon.style.visibility=
+        colon.style.visibility==="hidden"?"visible":"hidden";
 }
-
 setInterval(updateClock,1000);
 updateClock();
+
+async function initCamera(){
+    stream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+    video.srcObject=stream;
+    mediaRecorder=new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable=e=>{
+        if(e.data.size>0) recordedChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop=()=>{
+        const blob=new Blob(recordedChunks,{type:"video/webm"});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement("a");
+        a.href=url;
+        a.download="kayit.webm";
+        a.click();
+        recordedChunks=[];
+    };
+}
+initCamera();
+
+async function requestWakeLock(){
+    if("wakeLock" in navigator){
+        wakeLock=await navigator.wakeLock.request("screen");
+    }
+}
+
+function toggleRecording(){
+    if(!recording){
+        mediaRecorder.start();
+        requestWakeLock();
+        document.getElementById("recDot").style.display="block";
+        recording=true;
+    }else{
+        mediaRecorder.stop();
+        if(wakeLock) wakeLock.release();
+        document.getElementById("recDot").style.display="none";
+        recording=false;
+    }
+}
+
+document.body.addEventListener("click",e=>{
+    const now=Date.now();
+    if(now-lastTap<300){
+        if(!document.fullscreenElement){
+            document.documentElement.requestFullscreen();
+        }
+    }else{
+        toggleRecording();
+    }
+    lastTap=now;
+});
 </script>
 
 </body>
