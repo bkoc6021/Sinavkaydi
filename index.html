@@ -2,97 +2,86 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bknet Sınav Güvenlik Sistemi</title>
-    <!-- Digital-7 Font (woff) gömülü, lisans: free font internetten alınmıştır -->
+    <title>Dijital Saatli Sınav Güvenliği</title>
     <style>
         @font-face {
-            font-family: 'Digital-7';
-            src: url('data:font/woff;base64,d09GRgABAAAAAAqYABAAAAAAPJgAAACEAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAGoAAAAF0ZGVE0AAAC8AAAANwAAAAcAAABHAAEAAAAAAAAAAAB4AAAAQ0xFUwAAA3wAAABfAAAANE9TLzIAAAWwAAAAdAAAAEhjbWFwAAAI2AAAAEsAAABoY3Z0IAAAC9gAAAAgAAAAMWFzcAAABEAACAAQAAAIgnZ2FzcAAAA5gAAABQAAAAgZ2x5ZgAAE4AAABeAAACMWhlYWQAAAOwAAABvAAAAJGhoZWEAAAJcAAABxAAAACRobXR4AAAJqAAABpgAAABpIbG9jAAARKgAABrAAAAAhbWF4cAAACGQAAAJUAAAAGm5hbWUAAAJgAAAB0AAAEXNoZWQAAAkEAAAC8AAAADJtb2RrAAAJnAAAAhYAAABWcmVlAAAK2AAAAPwAAACOcG9zdAAACwwAAADcAAAAHHByZXAAABAgAAACwAAAACZ2VudGAAABIQAAAD2AAAACJkZXNjAAABpwAAAAAwAAAAMAAAABwAAAAgAAAAAAAEAAAAAAwAAAAAAAAAAAAAAAEAAAAAAAEAAAABAAAAAAAAAAAACgAAABwAAgBABAAFAAAAGgAIAAgAAgAAABAAAAAAAAAAAAAAAAAAAAAAABBHAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAAABgAAABgfQIXAwAABAAAP5gAAQAAAAAAAAsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAgAAAAQAAABAAAAAAAgAAgAAAAAAAAAAAAAAAACAAAAAAAAAfAAHAAQAAAB8AAkAAAAAAAEAAAAAAAAAAAAAAAUAAAAAAABAAwAAAAEAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAkAAAAIAAAACAAAAAgAAAAIAAABFAAAARInSAAACQAQAAwAFAAAKAADkALAAwAAIAdT/AeYAAAAAAAMAAAAAAAQAAgAAAAAAAAAAAAAAAAAAABAAAAABAAADZAAAEAAAAeadAgtwAAfEMAAABpgAAABkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA') format('woff');
+            font-family: 'DS-Digital';
+            src: url('cristal.tff') format('tff');
             font-weight: normal;
             font-style: normal;
         }
         body {
             background: #000;
             margin: 0;
-            height: 100vh;
+            padding: 0;
             overflow: hidden;
-            user-select: none;
         }
         .container {
-            position: relative;
             width: 100vw;
             height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            position: relative;
         }
         .clock {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-family: 'Digital-7', monospace;
-            font-size: 16vw;
+            font-family: 'DS-Digital', 'Digital-7', monospace;
+            font-size: 20vw;
             color: #ff2020;
-            text-shadow: 0 0 40px #ff0000, 0 0 5px #d20000;
-            z-index: 2;
             letter-spacing: 2vw;
+            text-align: center;
+            text-shadow: 0 0 40px #ff0000, 0 0 6px #d20000;
             user-select: none;
+            margin-bottom: 1vh;
         }
         .clock .dots {
-            transition: opacity 0.15s;
+            transition: opacity 0.2s;
         }
-        /* Turuncu kontrol noktası */
         .control-dot {
             position: fixed;
-            top: 3vw;
-            right: 3vw;
+            top: 2vw;
+            right: 2vw;
             width: 3vw;
             height: 3vw;
-            min-width: 25px;
-            min-height: 25px;
+            min-width: 22px;
+            min-height: 22px;
             background: #ff8800;
             border-radius: 50%;
             border: 2px solid #fff400;
-            box-shadow: 0 0 20px #ff8800ab;
-            z-index: 5;
+            box-shadow: 0 0 14px #ff8800ab;
+            z-index: 10;
             cursor: pointer;
         }
         .control-dot.recording {
-            animation: blink-dot 0.6s linear infinite;
+            animation: blink-dot 0.7s linear infinite;
             background: #ff0000 !important;
         }
         @keyframes blink-dot {
-            0%, 49% { opacity: 1; background: #ff0000;}
-            50%,99% { opacity: 0.25; background: #ff8800;}
+            0%, 49% { opacity: 1; }
+            50%,99% { opacity: 0.3; }
         }
-        /* Durum mesajı */
         .status-message {
             position: fixed;
             bottom: 2vw;
-            right: 3vw;
+            right: 2vw;
             background: #ff8800;
             color: #222;
             font-size: 1.5vw;
-            padding: 0.8vw 1.5vw;
+            padding: 0.5vw 1vw;
             border-radius: 1vw;
             font-weight: bold;
-            z-index: 10;
+            z-index: 100;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.6s;
         }
-        .status-message.show {
-            opacity: 1;
-        }
-        video {
-            display: none;
-        }
+        .status-message.show { opacity: 1; }
+        video { display: none; }
         .recording-time {
             position: fixed;
-            top: 3vw;
-            left: 3vw;
+            top: 2vw;
+            left: 2vw;
             color: #ff8800;
             font-size: 2vw;
             font-family: Arial, sans-serif;
@@ -101,21 +90,17 @@
             z-index: 6;
             display: none;
         }
-        .recording-time.show {
-            display: block;
-        }
+        .recording-time.show { display: block; }
         @media (max-width: 700px) {
-            .clock{font-size: 15vh;}
-            .recording-time, .status-message{font-size: 14px;}
+            .clock { font-size: 14vh; }
+            .recording-time, .status-message { font-size: 12px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="clock">
-            <span id="h1">8</span><span id="h2">8</span>
-            <span class="dots" id="dots">:</span>
-            <span id="m1">8</span><span id="m2">8</span>
+            <span id="h1">8</span><span id="h2">8</span><span class="dots" id="dots">:</span><span id="m1">8</span><span id="m2">8</span>
         </div>
         <div class="control-dot" id="controlDot" title="Kayıt başlat/durdur"></div>
         <div class="recording-time" id="recordingTime"></div>
@@ -124,52 +109,38 @@
     </div>
     <script>
         // Saat ve animasyon
-        function pad(x) {
-            return x.toString().padStart(2, "0");
-        }
+        function pad(x) { return x.toString().padStart(2, "0"); }
         const h1 = document.getElementById("h1");
         const h2 = document.getElementById("h2");
         const m1 = document.getElementById("m1");
         const m2 = document.getElementById("m2");
         const dots = document.getElementById("dots");
-
-        let lastDotState = true; // nokta görünür mü
+        let dotState = true;
         setInterval(() => {
             const d = new Date();
-            h1.textContent = pad(d.getHours())[0];
-            h2.textContent = pad(d.getHours())[1];
-            m1.textContent = pad(d.getMinutes())[0];
-            m2.textContent = pad(d.getMinutes())[1];
-            // noktalar saniyenin çift olup olmadığına göre yanıp sönsün
-            lastDotState = !lastDotState;
-            dots.style.opacity = lastDotState ? "1" : "0.2";
+            const h = pad(d.getHours());
+            const m = pad(d.getMinutes());
+            h1.textContent = h[0];
+            h2.textContent = h[1];
+            m1.textContent = m[0];
+            m2.textContent = m[1];
+            dotState = !dotState;
+            dots.style.opacity = dotState ? "1" : "0.2";
         }, 1000);
-
-        // Tam ekran fonksiyonu ve dokunma sayacı
+        // Tam ekrana geçiş
         let tapCount = 0;
         let tapTimer = null;
         document.querySelector(".clock").addEventListener("click", () => {
             tapCount++;
             if (tapTimer) clearTimeout(tapTimer);
-            tapTimer = setTimeout(() => { tapCount = 0; }, 2000); // 2sn içinde 5 kere dokunulursa
+            tapTimer = setTimeout(() => { tapCount = 0; }, 2200);
             if (tapCount >= 5) {
                 tapCount = 0;
-                toggleFullScreen();
+                const el = document.documentElement;
+                if (!document.fullscreenElement) el.requestFullscreen();
             }
         });
-
-        function toggleFullScreen() {
-            const el = document.documentElement;
-            if (!document.fullscreenElement) {
-                if (el.requestFullscreen) el.requestFullscreen();
-                else if (el.webkitRequestFullScreen) el.webkitRequestFullScreen();
-            } else {
-                if (document.exitFullscreen) document.exitFullscreen();
-                else if (document.webkitExitFullScreen) document.webkitExitFullScreen();
-            }
-        }
-
-        // Kamera ve kayıt
+        // Kayıt fonksiyonları
         const controlDot = document.getElementById('controlDot');
         const statusMessage = document.getElementById('statusMessage');
         const recordingTime = document.getElementById('recordingTime');
@@ -180,7 +151,6 @@
         let recordingStartTime = null;
         let recordingTimerInterval = null;
         let stream = null;
-
         function showStatus(msg, time=2000) {
             statusMessage.textContent = msg;
             statusMessage.classList.add('show');
@@ -193,55 +163,34 @@
             const sec = pad(elapsed % 60);
             recordingTime.textContent = `Kayıt: ${min}:${sec}`;
         }
-
         async function getCameraStream() {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: "user", width: {ideal:1280}, height:{ideal:720} },
-                    audio: true // ses kaydı dahil!
+                    audio: true
                 });
                 cameraVideo.srcObject = stream;
                 return stream;
             } catch (e) {
-                showStatus("Aygıta Kamera/ses izni verilmedi!");
+                showStatus("❌ Kamera/ses izni verilmedi!");
                 return null;
             }
         }
-
-        // ilk gelişi kamera izni (arka planda çalışacak)
-        window.addEventListener('load', async () => {
-            await getCameraStream();
-        });
-        // Kapatıldığında tüm track'ler dursun
+        window.addEventListener('load', async () => { await getCameraStream(); });
         window.addEventListener('beforeunload', () => {
-            if (cameraVideo.srcObject) {
-                cameraVideo.srcObject.getTracks().forEach(track => track.stop());
-            }
+            if (cameraVideo.srcObject) cameraVideo.srcObject.getTracks().forEach(t=> t.stop());
         });
-
-        // Noktanın fonksiyonu: kayıt başlat/durdur
         controlDot.addEventListener("click", async () => {
-            if (!isRecording) {
-                // KAYIT BAŞLAT
-                await startRecording();
-            } else {
-                // KAYIT DURDUR + DOSYA İNDİR
-                await stopRecordingAndDownload();
-            }
+            if (!isRecording) await startRecording();
+            else await stopRecordingAndDownload();
         });
-
         async function startRecording() {
             try {
-                // İzin yoksa tekrar iste (mobilde gerekebilir)
                 if (!stream) stream = await getCameraStream();
                 if (!stream) return;
                 recordedChunks = [];
-                mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: "video/webm;codecs=vp8,opus"
-                });
-                mediaRecorder.ondataavailable = e => {
-                    if (e.data.size > 0) recordedChunks.push(e.data);
-                };
+                mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp8,opus" });
+                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
                 mediaRecorder.onstop = () => {};
                 mediaRecorder.start();
                 isRecording = true;
@@ -249,10 +198,8 @@
                 controlDot.classList.add("recording");
                 recordingTime.classList.add("show");
                 recordingTimerInterval = setInterval(updateRecordingTime, 1000);
-                showStatus("Sınav Kayıtı başladı!");
-            } catch (e) {
-                showStatus("Sınav Kayıtı başlatılamadı!");
-            }
+                showStatus("🔴 Kayıt başladı!");
+            } catch (e) { showStatus("❌ Kayıt başlatılamadı!"); }
         }
         async function stopRecordingAndDownload() {
             try {
@@ -270,13 +217,11 @@
                     const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0,-5);
                     a.href = url; a.download = `sinav-kayit-${timestamp}.webm`;
                     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                    showStatus("Sınav Kayıtı indirildi!", 3000);
+                    showStatus("✅ Kayıt indirildi!", 3000);
                     if (cameraVideo.srcObject) cameraVideo.srcObject.getTracks().forEach(track => track.stop());
                     stream = null;
                 };
-            } catch (e) {
-                showStatus("Sınav Kayıtı durdurulamadı!");
-            }
+            } catch (e) { showStatus("❌ Kayıt durdurulamadı!"); }
         }
     </script>
 </body>
